@@ -930,6 +930,50 @@ func TestSimulateV1WithBlockOverrides(t *testing.T) {
 	}
 }
 
+// TestSimulateV1WithBlobBaseFeeOverride checks that the blob base fee block
+// override is sent to the node.
+func TestSimulateV1WithBlobBaseFeeOverride(t *testing.T) {
+	backend, _, err := newTestBackend(nil)
+	if err != nil {
+		t.Fatalf("Failed to create test backend: %v", err)
+	}
+	defer backend.Close()
+
+	client := ethclient.NewClient(backend.Attach())
+	defer client.Close()
+
+	var (
+		// BLOBBASEFEE PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN
+		code        = common.FromHex("0x4a60005260206000f3")
+		contract    = common.HexToAddress("0x000000000000000000000000000000000000c0de")
+		blobBaseFee = big.NewInt(7)
+	)
+	opts := ethclient.SimulateOptions{
+		BlockStateCalls: []ethclient.SimulateBlock{
+			{
+				BlockOverrides: &ethereum.BlockOverrides{BlobBaseFee: blobBaseFee},
+				StateOverrides: map[common.Address]ethereum.OverrideAccount{
+					contract: {Code: code},
+				},
+				Calls: []ethereum.CallMsg{{From: testAddr, To: &contract, Gas: 100000}},
+			},
+		},
+	}
+	results, err := client.SimulateV1(context.Background(), opts, nil)
+	if err != nil {
+		t.Fatalf("SimulateV1 with blob base fee override failed: %v", err)
+	}
+	if len(results) != 1 || len(results[0].Calls) != 1 {
+		t.Fatalf("unexpected results: %+v", results)
+	}
+	if call := results[0].Calls[0]; call.Error != nil {
+		t.Fatalf("unexpected call error: %v", call.Error)
+	}
+	if got := new(big.Int).SetBytes(results[0].Calls[0].ReturnValue); got.Cmp(blobBaseFee) != 0 {
+		t.Errorf("expected blob base fee %v, got %v", blobBaseFee, got)
+	}
+}
+
 func TestSimulateV1WithStateOverrides(t *testing.T) {
 	backend, _, err := newTestBackend(nil)
 	if err != nil {

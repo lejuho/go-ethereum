@@ -368,25 +368,39 @@ type BlockOverrides struct {
 	Random common.Hash
 	// BaseFee overrides the block base fee.
 	BaseFee *big.Int
+	// BlobBaseFee overrides the blob base fee.
+	BlobBaseFee *big.Int
+	// BeaconRoot overrides the parent beacon block root. It is only
+	// supported by eth_simulateV1.
+	BeaconRoot *common.Hash
+	// Withdrawals overrides the withdrawals of the block. It is only
+	// supported by eth_simulateV1.
+	Withdrawals types.Withdrawals
 }
 
 func (o BlockOverrides) MarshalJSON() ([]byte, error) {
 	type override struct {
-		Number     *hexutil.Big    `json:"number,omitempty"`
-		Difficulty *hexutil.Big    `json:"difficulty,omitempty"`
-		Time       hexutil.Uint64  `json:"time,omitempty"`
-		GasLimit   hexutil.Uint64  `json:"gasLimit,omitempty"`
-		Coinbase   *common.Address `json:"feeRecipient,omitempty"`
-		Random     *common.Hash    `json:"prevRandao,omitempty"`
-		BaseFee    *hexutil.Big    `json:"baseFeePerGas,omitempty"`
+		Number      *hexutil.Big      `json:"number,omitempty"`
+		Difficulty  *hexutil.Big      `json:"difficulty,omitempty"`
+		Time        hexutil.Uint64    `json:"time,omitempty"`
+		GasLimit    hexutil.Uint64    `json:"gasLimit,omitempty"`
+		Coinbase    *common.Address   `json:"feeRecipient,omitempty"`
+		Random      *common.Hash      `json:"prevRandao,omitempty"`
+		BaseFee     *hexutil.Big      `json:"baseFeePerGas,omitempty"`
+		BlobBaseFee *hexutil.Big      `json:"blobBaseFee,omitempty"`
+		BeaconRoot  *common.Hash      `json:"beaconRoot,omitempty"`
+		Withdrawals types.Withdrawals `json:"withdrawals,omitempty"`
 	}
 
 	output := override{
-		Number:     (*hexutil.Big)(o.Number),
-		Difficulty: (*hexutil.Big)(o.Difficulty),
-		Time:       hexutil.Uint64(o.Time),
-		GasLimit:   hexutil.Uint64(o.GasLimit),
-		BaseFee:    (*hexutil.Big)(o.BaseFee),
+		Number:      (*hexutil.Big)(o.Number),
+		Difficulty:  (*hexutil.Big)(o.Difficulty),
+		Time:        hexutil.Uint64(o.Time),
+		GasLimit:    hexutil.Uint64(o.GasLimit),
+		BaseFee:     (*hexutil.Big)(o.BaseFee),
+		BlobBaseFee: (*hexutil.Big)(o.BlobBaseFee),
+		BeaconRoot:  o.BeaconRoot,
+		Withdrawals: o.Withdrawals,
 	}
 	if o.Coinbase != (common.Address{}) {
 		output.Coinbase = &o.Coinbase

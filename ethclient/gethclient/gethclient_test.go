@@ -581,6 +581,14 @@ func TestBlockOverridesMarshal(t *testing.T) {
 			},
 			want: `{"number":"0x1","difficulty":"0x2","time":"0x3","gasLimit":"0x4","baseFeePerGas":"0x5"}`,
 		},
+		{
+			bo: BlockOverrides{
+				BlobBaseFee: big.NewInt(6),
+				BeaconRoot:  &common.Hash{0x07},
+				Withdrawals: types.Withdrawals{{Index: 8, Validator: 9, Address: common.Address{0x0a}, Amount: 11}},
+			},
+			want: `{"blobBaseFee":"0x6","beaconRoot":"0x0700000000000000000000000000000000000000000000000000000000000000","withdrawals":[{"index":"0x8","validatorIndex":"0x9","address":"0x0a00000000000000000000000000000000000000","amount":"0xb"}]}`,
+		},
 	} {
 		marshalled, err := json.Marshal(&tt.bo)
 		if err != nil {
